@@ -25,9 +25,16 @@ function App() {
 }
 
 function Timer() {
+  const FOCUS_SESSION = 10;
+  const SHORT_BREAK = 5;
+  const LONG_BREAK = 4;
+  const POMODORI = 3;
+
   const [pomodoros, setPomodoros] = React.useState(0);
-  const [currentTime, setCurrentTime] = React.useState(20 * 60) //25 mins
+  const [currentTime, setCurrentTime] = React.useState(FOCUS_SESSION) //25 mins
   const [isRunning, setIsRunning] = React.useState(false);
+  // const [cycleCount, setCycleCount] = React.useState(0);
+  const [isFocus, setIsFocus] = React.useState(true);
 
   const handleStartStop = () => {
     setIsRunning(!isRunning);
@@ -41,16 +48,29 @@ function Timer() {
         setCurrentTime((prevTime) => prevTime - 1);
       }, 1000);
     }
-    else if (currentTime === 0) {
-      setPomodoros((prevPomodoros) => prevPomodoros + 1);
-    }
-    else {
+    else if (currentTime === 0 && isRunning) {
       setIsRunning(false);
-      // setPomodoros(pomodoros + 1);
+      // setCycleCount((prev) => prev + 1);
+
+      if (isFocus) {
+        setIsFocus(false); // next session is break
+
+        if (pomodoros % POMODORI === 0 && pomodoros != 0) {
+          setCurrentTime(LONG_BREAK);
+        }
+        else {
+          setCurrentTime(SHORT_BREAK);
+        }
+      } else {
+        setPomodoros((prev) => prev + 1);
+        setIsFocus(true); // next session is focus
+        setCurrentTime(FOCUS_SESSION);
+      }
     }
 
     return () => clearTimeout(timeoutID);
-  }, [isRunning, currentTime])
+
+  }, [isRunning, currentTime, isFocus])
 
   const formatTime = (seconds) => {
     const min = String(Math.floor(seconds / 60)).padStart(2, '0');
